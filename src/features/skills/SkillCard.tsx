@@ -5,6 +5,8 @@ import {
   Scan,
 } from 'lucide-react'
 import type { Skill } from '../../types/skill'
+import { getSkillDisplayTranslation } from '../../lib/skillTranslations'
+import { useLanguageStore } from '../../stores/languageStore'
 
 type SkillCardProps = {
   skill: Skill
@@ -24,6 +26,11 @@ export function SkillCard({
   selected,
   onSelect,
 }: SkillCardProps) {
+  const language = useLanguageStore(
+    (state) => state.language,
+  )
+
+  const display = getSkillDisplayTranslation(language, skill.id)
   const Icon = icons[skill.icon as keyof typeof icons] ?? FileSearch
 
   return (
@@ -50,14 +57,14 @@ export function SkillCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <p className="truncate text-sm font-medium">
-              {skill.name}
+              {display?.name ?? skill.name}
             </p>
 
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
           </div>
 
           <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-400">
-            {skill.description}
+            {display?.description ?? skill.description}
           </p>
         </div>
       </div>

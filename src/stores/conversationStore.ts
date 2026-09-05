@@ -29,7 +29,7 @@ const initialConversations: Conversation[] = [
   {
     id: 'conversation-1',
     title: 'Welcome to NeuroClawAlike',
-    updatedAt: 'Today',
+    updatedAt: 'today',
     messages: [
       {
         id: 'message-1',
@@ -43,7 +43,7 @@ const initialConversations: Conversation[] = [
   {
     id: 'conversation-2',
     title: 'DICOM image analysis',
-    updatedAt: 'Today',
+    updatedAt: 'today',
     messages: [
       {
         id: 'message-2',
@@ -63,7 +63,7 @@ const initialConversations: Conversation[] = [
   {
     id: 'conversation-3',
     title: 'Image processing task',
-    updatedAt: 'Yesterday',
+    updatedAt: 'yesterday',
     messages: [
       {
         id: 'message-4',
@@ -96,8 +96,8 @@ export const useConversationStore = create<ConversationStore>((set) => ({
 
     const newConversation: Conversation = {
       id,
-      title: 'New conversation',
-      updatedAt: 'Just now',
+      title: 'new-conversation',
+      updatedAt: 'just-now',
       messages: [],
     }
 
@@ -124,7 +124,7 @@ export const useConversationStore = create<ConversationStore>((set) => ({
                   }),
                 },
               ],
-              updatedAt: 'Just now',
+              updatedAt: 'just-now',
             }
           : conversation,
       ),

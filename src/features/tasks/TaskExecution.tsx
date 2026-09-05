@@ -5,6 +5,8 @@ import {
   X,
 } from 'lucide-react'
 import type { AgentTask, TaskStepStatus } from '../../types/agent'
+import { getTranslations } from '../../lib/i18n'
+import { useLanguageStore } from '../../stores/languageStore'
 
 type TaskExecutionProps = {
   task: AgentTask
@@ -45,6 +47,19 @@ function StepIcon({ status }: { status: TaskStepStatus }) {
 export function TaskExecution({
   task,
 }: TaskExecutionProps) {
+    const language = useLanguageStore(
+    (state) => state.language,
+  )
+
+  const t = getTranslations(language)
+
+  const statusLabels: Record<AgentTask['status'], string> = {
+    planning: t.planning,
+    running: t.running,
+    completed: t.completed,
+    failed: t.failed,
+  }
+
   return (
     <div className="mb-6 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <div className="mb-4 flex items-center justify-between">
@@ -54,12 +69,12 @@ export function TaskExecution({
           </p>
 
           <p className="mt-1 text-xs text-zinc-400">
-            Agent execution
+            {t.agentExecution}
           </p>
         </div>
 
         <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium capitalize text-zinc-500 dark:bg-zinc-900">
-          {task.status}
+          {statusLabels[task.status]}
         </span>
       </div>
 

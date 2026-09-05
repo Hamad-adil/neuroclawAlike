@@ -3,6 +3,8 @@ import { useSkillStore } from '../../stores/skillStore'
 import { getSkills } from '../../services/skillService'
 import { SkillCard } from './SkillCard'
 import { SkillSearch } from './SkillSearch'
+import { getTranslations } from '../../lib/i18n'
+import { useLanguageStore } from '../../stores/languageStore'
 
 export function SkillList() {
   const [search, setSearch] = useState('')
@@ -12,6 +14,12 @@ export function SkillList() {
     setSkills,
     selectSkill,
   } = useSkillStore()
+
+  const language = useLanguageStore(
+    (state) => state.language,
+  )
+
+  const t = getTranslations(language)
 
   useEffect(() => {
     let mounted = true
@@ -26,6 +34,7 @@ export function SkillList() {
       mounted = false
     }
   }, [setSkills])
+
   const filteredSkills = skills.filter((skill) => {
     const query = search.trim().toLowerCase()
 
@@ -42,15 +51,16 @@ export function SkillList() {
       )
     )
   })
+
   if (skills.length === 0) {
     return (
       <div className="px-2 py-3 text-xs text-zinc-400">
-        Loading skills...
+        {t.loadingSkills}
       </div>
     )
   }
 
-    return (
+  return (
     <div>
       <div className="mb-2">
         <SkillSearch
@@ -61,7 +71,7 @@ export function SkillList() {
 
       {filteredSkills.length === 0 ? (
         <div className="px-2 py-3 text-xs text-zinc-400">
-          No skills found.
+          {t.noSkillsFound}
         </div>
       ) : (
         <div className="space-y-1">

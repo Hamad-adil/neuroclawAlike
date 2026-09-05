@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import {
-  Check,
   ChevronDown,
   ChevronUp,
   Menu,
@@ -13,6 +12,9 @@ import {
 } from 'lucide-react'
 
 import { TaskExecution } from './features/tasks/TaskExecution'
+import { LanguageSelector } from './components/LanguageSelector'
+import { getTranslations } from './lib/i18n'
+import { useLanguageStore } from './stores/languageStore'
 import { ConversationSearch } from './features/conversations/ConversationSearch'
 import { SkillList } from './features/skills/SkillList'
 import { sendMessageToMockAgent } from './services/mockAgentService'
@@ -33,6 +35,28 @@ function App() {
     skills,
     selectedSkillId,
   } = useSkillStore()
+  const language = useLanguageStore(
+    (state) => state.language,
+  )
+
+  const t = getTranslations(language)
+
+  const updatedAtLabels: Record<string, string> = {
+    today: t.today,
+    yesterday: t.yesterday,
+    'just-now': t.justNow,
+  }
+
+  const getUpdatedAtLabel = (value: string): string => {
+    return updatedAtLabels[value] ?? value
+  }
+
+  const getConversationTitle = (title: string): string => {
+    if (title === 'new-conversation') {
+      return t.newConversation
+    }
+    return title
+  }
 
   const selectedSkill = skills.find(
     (skill) => skill.id === selectedSkillId,
@@ -113,38 +137,38 @@ function App() {
     const task: AgentTask = {
       id: `task-${Date.now()}`,
       title: selectedSkill
-        ? `Processing with ${selectedSkill.name}`
-        : 'Processing request',
+        ? t.processingWithSkill.replace('{{skill}}', selectedSkill.name)
+        : t.processingRequest,
       status: 'planning',
       steps: [
         {
           id: 'step-1',
-          title: 'Understand request',
+          title: t.understandRequest,
           description:
-            'Analyzing the user request and determining the required operation.',
+            t.understandRequestDescription,
           status: 'completed',
         },
         {
           id: 'step-2',
-          title: 'Select skill',
+          title: t.selectSkill,
           description: selectedSkill
-            ? `Selected skill: ${selectedSkill.name}`
-            : 'Determining which agent capability should handle the request.',
+            ? `${t.selectedSkill} ${selectedSkill.name}`
+            : t.determiningSkill,
           status: 'running',
         },
         {
           id: 'step-3',
-          title: 'Execute task',
+          title: t.executeTask,
           description: selectedSkill
-            ? `Running the ${selectedSkill.name} skill.`
-            : 'Running the required operation.',
+            ? t.runningWithSkill.replace('{{skill}}', selectedSkill.name)
+            : t.runningOperation,
           status: 'pending',
         },
         {
           id: 'step-4',
-          title: 'Return result',
+          title: t.returnResult,
           description:
-            'Preparing the final result for the conversation.',
+            t.preparingResult,
           status: 'pending',
         },
       ],
@@ -218,7 +242,7 @@ function App() {
       addMessage(activeConversationId, {
         role: 'assistant',
         content:
-          'Something went wrong while processing your request.',
+          t.errorMessage,
       })
 
       setActiveTask({
@@ -269,7 +293,7 @@ function App() {
               </div>
 
               <span className="text-sm font-semibold">
-                NeuroClawAlike
+                {t.appName}
               </span>
             </div>
 
@@ -279,7 +303,7 @@ function App() {
                 setSidebarOpen(false)
               }
               className="rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-200 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
-              aria-label="Close sidebar"
+              aria-label={t.closeSidebar}
             >
               <X className="h-4 w-4" />
             </button>
@@ -293,7 +317,7 @@ function App() {
               className="brand-button flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition"
             >
               <Plus className="h-4 w-4" />
-              New conversation
+              {t.newConversation}
             </button>
           </div>
 
@@ -306,7 +330,7 @@ function App() {
   />
 </div>
             <p className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-              Conversations
+              {t.conversations}
             </p>
 
             <div className="space-y-1">
@@ -328,11 +352,11 @@ function App() {
                     }`}
                   >
                     <p className="truncate text-sm font-medium">
-                      {conversation.title}
+                      {getConversationTitle(conversation.title)}
                     </p>
 
                     <p className="mt-1 text-xs text-zinc-400">
-                      {conversation.updatedAt}
+                      {getUpdatedAtLabel(conversation.updatedAt)}
                     </p>
                   </button>
                 ),
@@ -352,7 +376,7 @@ function App() {
             >
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                  Skills
+                  {t.skills}
                 </span>
 
                 {skills.length > 0 && (
@@ -394,7 +418,7 @@ function App() {
                   setSidebarOpen(true)
                 }
                 className="mr-3 rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
-                aria-label="Open sidebar"
+                aria-label={t.openSidebar}
               >
                 <Menu className="h-5 w-5" />
               </button>
@@ -402,19 +426,21 @@ function App() {
 
             <div className="min-w-0">
               <h1 className="truncate text-sm font-semibold">
-                {activeConversation?.title ??
-                  'New conversation'}
+                {activeConversation?.title === 'new-conversation'
+                  ? t.newConversation
+                  : activeConversation?.title}
               </h1>
 
               {selectedSkill && (
                 <p className="mt-0.5 truncate text-xs text-zinc-400">
-                  Skill: {selectedSkill.name}
+                  {t.usingSkill} {selectedSkill.name}
                 </p>
               )}
             </div>
           </div>
-
-          {/* DARK MODE SWITCH */}
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+            {/* DARK MODE SWITCH */}
           <button
             type="button"
             onClick={() =>
@@ -427,8 +453,8 @@ function App() {
 }`}
             aria-label={
               darkMode
-                ? 'Switch to light mode'
-                : 'Switch to dark mode'
+                ? t.switchToLight
+                : t.switchToDark
             }
           >
             <div
@@ -449,6 +475,7 @@ function App() {
               Toggle dark mode
             </span>
           </button>
+          </div>
 
         </header>
 
@@ -475,17 +502,16 @@ function App() {
                   </div>
 
                   <h2 className="text-xl font-semibold">
-                    Start a conversation
+                    {t.startConversation}
                   </h2>
 
                   <p className="mt-2 text-sm text-zinc-400">
-                    Ask the NeuroClaw agent to
-                    perform a task.
+                    {t.askAgent}
                   </p>
 
                   {selectedSkill && (
                     <p className="mt-3 text-xs text-zinc-500">
-                      Selected skill:{' '}
+                      {t.selectedSkill}{' '}
                       <span className="font-medium">
                         {selectedSkill.name}
                       </span>
@@ -583,9 +609,8 @@ function App() {
 
             {selectedSkill && (
               <div className="mb-2 flex items-center gap-2 text-xs text-zinc-400">
-
                 <span>
-                  Using skill:
+                  {t.usingSkill}
                 </span>
 
                 <span className="rounded-full bg-zinc-100 px-2.5 py-1 font-medium text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
@@ -603,7 +628,7 @@ function App() {
                   setInput(event.target.value)
                 }
                 onKeyDown={handleKeyDown}
-                placeholder="Message NeuroClawAlike..."
+                placeholder={t.messagePlaceholder}
                 rows={1}
                 disabled={isSending}
                 className="max-h-40 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none placeholder:text-zinc-400 disabled:cursor-not-allowed"
@@ -617,7 +642,7 @@ function App() {
                   isSending
                 }
                 className="brand-button flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="Send message"
+                aria-label={t.sendMessage}
               >
                 <Send className="h-4 w-4" />
               </button>
@@ -625,8 +650,7 @@ function App() {
             </div>
 
             <p className="mt-2 text-center text-[10px] text-zinc-400">
-              NeuroClawAlike frontend prototype · Backend
-              connection will be added later
+              {t.backendNotice}
             </p>
 
           </div>
